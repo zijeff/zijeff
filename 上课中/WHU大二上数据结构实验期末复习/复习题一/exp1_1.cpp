@@ -1,4 +1,5 @@
 // 使用递归实现
+// PS：这个非递归怎么这么难想啊，太坏了/(ㄒoㄒ)/~~
 #include <iostream>
 #include <memory>
 using namespace std;
