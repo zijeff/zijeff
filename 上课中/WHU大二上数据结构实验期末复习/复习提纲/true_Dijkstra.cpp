@@ -5,7 +5,7 @@ using namespace std;
 
 using ans = pair<int, vector<int>>; // [dist, path]
 
-ans DijkstraPQ(vector<vector<int>> &graph, int begin, int end) {
+ans Dijkstra(vector<vector<int>> &graph, int begin, int end) {
     int n = graph.size();
 
     vector<int> dist(n, INF);
@@ -68,7 +68,7 @@ int main() {
         {INF, INF, INF, INF, INF, 6, 1, 0}  // 7
     };
 
-    ans res = DijkstraPQ(graph, 0, 7);
+    ans res = Dijkstra(graph, 0, 7);
     cout << res.first << endl;
     for (int node : res.second)
         cout << node << ' ';
