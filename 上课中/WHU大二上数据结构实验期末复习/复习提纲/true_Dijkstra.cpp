@@ -1,59 +1,76 @@
+// 使用邻接矩阵 + 优先队列 实现 Dijkstra 算法
 #include <bits/stdc++.h>
+#define INF 1000000000
 using namespace std;
-using edge = pair<int, int>; // 邻接表中的边，[node, weight]节点编号在前，权重在后。
-using qe = pair<int, int>;   // QueueEleme——优先队列中的元素，[node, dist[node]]节点编号与给定节点到当前节点的最短距离
-struct cmp {
-    bool operator()(const edge &a, const edge &b) const { return a.second > b.second; }
-};
-vector<int> Dijkstra(vector<vector<edge>> &graph, int begin) {
-    vector<int> dist(graph.size(), INT_MAX);
-    vector<bool> visited(graph.size(), false);
-    priority_queue<edge, vector<edge>, cmp> s;
+
+using ans = pair<int, vector<int>>; // [dist, path]
+
+ans DijkstraPQ(vector<vector<int>> &graph, int begin, int end) {
+    int n = graph.size();
+
+    vector<int> dist(n, INF);
+    vector<int> pre(n, -1);
+    vector<bool> vis(n, false);
+
+    // 小根堆 (dist, node)
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+
     dist[begin] = 0;
-    qe current = {begin, dist[begin]};
-    s.push(current);
-    while (!s.empty()) {
-        current = s.top();
-        s.pop();
-        if (visited[current.first] == true)
+    pq.push({0, begin});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        // 堆中可能有过期状态
+        if (vis[u])
             continue;
-        visited[current.first] = true;
-        for (auto &e : graph[current.first]) {
-            if (dist[current.first] + e.second < dist[e.first]) {
-                dist[e.first] = dist[current.first] + e.second;
-                s.push({e.first, dist[e.first]});
+        vis[u] = true;
+
+        // 松弛 u -> v
+        for (int v = 0; v < n; v++) {
+            if (!vis[v] && graph[u][v] < INF) {
+                if (dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                    pre[v] = u;
+                    pq.push({dist[v], v});
+                }
             }
         }
     }
-    return dist;
-}
-int main() {
-    vector<vector<pair<int, int>>> graph(7);
 
-    // 从 0 出发
-    graph[0].push_back({1, 1});
-    graph[0].push_back({2, 1});
-    graph[0].push_back({3, 10});
-
-    // 从 1 出发
-    graph[1].push_back({2, 1});
-    graph[1].push_back({6, 100});
-
-    // 从 2 出发
-    graph[2].push_back({3, 1});
-
-    // 从 3 出发
-    graph[3].push_back({4, 1});
-
-    // 从 4 出发
-    graph[4].push_back({5, 1});
-
-    // 从 5 出发
-    graph[5].push_back({6, 1});
-
-    vector<int> dist = Dijkstra(graph, 0);
-
-    for (int i = 0; i < dist.size(); i++) {
-        cout << "dist[0 -> " << i << "] = " << dist[i] << endl;
+    vector<int> path;
+    if (dist[end] >= INF) {
+        return {INF, path};
     }
+
+    // 路径恢复
+    int cur = end;
+    while (cur != -1) {
+        path.push_back(cur);
+        cur = pre[cur];
+    }
+    reverse(path.begin(), path.end());
+
+    return {dist[end], path};
+}
+
+int main() {
+    vector<vector<int>> graph = {
+        // 0    1    2    3    4    5    6    7
+        {0, 3, 5, INF, INF, INF, INF, INF}, // 0
+        {3, 0, 1, 6, INF, INF, INF, INF},   // 1
+        {5, 1, 0, 2, 4, INF, INF, INF},     // 2
+        {INF, 6, 2, 0, 1, 7, INF, INF},     // 3
+        {INF, INF, 4, 1, 0, 3, 5, INF},     // 4
+        {INF, INF, INF, 7, 3, 0, 2, 6},     // 5
+        {INF, INF, INF, INF, 5, 2, 0, 1},   // 6
+        {INF, INF, INF, INF, INF, 6, 1, 0}  // 7
+    };
+
+    ans res = DijkstraPQ(graph, 0, 7);
+    cout << res.first << endl;
+    for (int node : res.second)
+        cout << node << ' ';
+    cout << endl;
 }
